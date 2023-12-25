@@ -16,6 +16,7 @@
 #include <chrono>
 #include <doctest/doctest.h> //!\sa https://github.com/doctest/doctest/blob/master/doc/markdown/tutorial.md
 #include <iterator>
+#include <queue>
 #include <vector>
 #include <set>
 #include <span>
@@ -84,45 +85,43 @@ public:
     }
 
     int findKthLargest_heap(vector<int>& nums, int k) {
-        // Create a heap containing the first k nums.
-        int heap[k];
-        std::copy(nums.begin(), nums.begin() + k, heap);
-        make_heap(heap, heap + k);
+#if 0
+        // Create a min-heap containing the first k nums.
+        priority_queue heap{nums.begin(), nums.begin() + k, greater<>{}};
 
         // For each remaining num in nums:
         for (auto const num : std::span{nums.begin() + k, nums.end()}) {
-//
-//!\todo TODO: The following is bs.  The smallest [leaf] node in the heap 
-//             must be replaced with the new value, but only when the new
-//             value is <= heap max value AND the new value >= all heap 
-//             leaf node values.
-//             When the new value is greater than the max value in the heap,
-//             replace the smallest heap value with the new value and then 
-//             heapify it up.
-//             This is all necessary to use the heap like a shift register.
-//
-//             auto const num_is_larger_than_heap_content = num > heap[0];
-//             if (num_is_larger_than_heap_content) {
-// // Remove largest number 
-// //
-// //!\todo TODO: >>> Under Construction <<<
-// //
-//                 pop_heap(heap, heap + k);
-//                 heap[k - 1] = num;
-//                 push_heap(heap, heap + k);
-//             }
+            if (heap.top() < num) {
+                heap.pop();
+                heap.push(num);
+            }
         }
 
-//
-//!\todo TODO: >>> Under Construction <<<
-//
-return 0;
+        return heap.top();
+#else // #if 0
+        // Create a min-heap containing the first k nums.
+        int heap[k];
+        std::copy(nums.begin(), nums.begin() + k, heap);
+        std::make_heap(heap, heap + k, std::greater<>{});
+
+        // For each remaining num in nums:
+        for (auto const num : std::span{nums.begin() + k, nums.end()}) {
+            if (num > heap[0]) {
+                pop_heap(heap, heap + k, std::greater<>{});
+                heap[k - 1] = num;
+                push_heap(heap, heap + k, std::greater<>{});
+            }
+        }
+
+        return heap[0];
+#endif // #if 0
     }
 
     int findKthLargest(vector<int>& nums, int k) {
         //return findKthLargest_sort(nums, k);
         //return findKthLargest_multiset(nums, k);
-        return findKthLargest_freqCount(nums, k);
+        //return findKthLargest_freqCount(nums, k);
+        return findKthLargest_heap(nums, k);
     }
 };
 
